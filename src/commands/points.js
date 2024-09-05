@@ -28,11 +28,11 @@ module.exports = {
   let targetUser, amount;
 
   if (args.length === 2) {
-   // User is modifying their own points
+   // user is modifying their own points
    targetUser = message.author;
    amount = parseInt(args[1]);
   } else {
-   // Admin is modifying someone else's points
+   // admin is modifying someone else's points
    if (!isAdmin) {
     return message.reply(
      "You don't have permission to modify other users' points."
