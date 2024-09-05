@@ -4,10 +4,18 @@ const {
  writeToSheet,
 } = require("../services/sheets");
 const errorHandler = require("../utils/errorHandler");
+const { getAdmins } = require("./admin");
 
 module.exports = {
  name: "user",
  execute: async (message, args) => {
+  // check if user is on admin list
+  const auth = await getAuthClient();
+  const admins = await getAdmins(auth);
+  if (!admins.includes(message.author.username)) {
+   return message.reply("You don't have permission to use this command.");
+  }
+
   if (args[0] !== "add" || args.length < 3) {
    return message.reply("Usage: !user add @username <team>");
   }

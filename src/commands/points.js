@@ -8,9 +8,13 @@ const errorHandler = require("../utils/errorHandler");
 module.exports = {
  name: "points",
  execute: async (message, args) => {
+  const auth = await getAuthClient();
+  const admins = await getAdmins(auth);
+  const isAdmin = admins.includes(message.author.username);
+
   if (args.length < 2) {
    return message.reply(
-    "Usage: !points <add/subtract> [amount] OR !points <add/subtract> @username <amount>"
+    "Usage: !points <add/subtract> [amount] OR !points <add/subtract> @username <amount> (admin only)"
    );
   }
 
@@ -29,6 +33,11 @@ module.exports = {
    amount = parseInt(args[1]);
   } else {
    // Admin is modifying someone else's points
+   if (!isAdmin) {
+    return message.reply(
+     "You don't have permission to modify other users' points."
+    );
+   }
    targetUser = message.mentions.users.first();
    amount = parseInt(args[args.length - 1]);
   }
@@ -53,7 +62,7 @@ module.exports = {
    let userColumn = -1;
    let pointsColumn = -1;
 
-   // Find the user and their points column
+   // find the user and their points column
    for (let i = 0; i < existingData[0].length; i += 2) {
     for (let j = 1; j < existingData.length; j++) {
      if (
@@ -73,13 +82,13 @@ module.exports = {
     return message.reply(`User "${username}" not found in any team.`);
    }
 
-   // Calculate new points
+   // calculate new point total
    let currentPoints = parseInt(existingData[userRow][pointsColumn] || "0");
    let newPoints =
     action === "add" ? currentPoints + amount : currentPoints - amount;
-   newPoints = Math.max(0, newPoints); // Ensure points don't go below 0
+   newPoints = Math.max(0, newPoints); // ensure points don't go below 0
 
-   // Update points in the sheet
+   // update points in the sheet
    const columnLetter = String.fromCharCode(65 + pointsColumn);
    await writeToSheet(auth, `${columnLetter}${userRow + 2}`, [
     [newPoints.toString()],
