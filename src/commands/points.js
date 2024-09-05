@@ -8,29 +8,42 @@ const errorHandler = require("../utils/errorHandler");
 module.exports = {
  name: "points",
  execute: async (message, args) => {
-  if (args.length < 3) {
-   return message.reply("Usage: !points <add/subtract> @username <amount>");
+  if (args.length < 2) {
+   return message.reply(
+    "Usage: !points <add/subtract> [amount] OR !points <add/subtract> @username <amount>"
+   );
   }
 
   const action = args[0].toLowerCase();
-  const mentionedUser = message.mentions.users.first();
-  const amount = parseInt(args[args.length - 1]);
-
-  if (!mentionedUser) {
-   return message.reply("Please mention a valid user.");
-  }
-
-  if (isNaN(amount) || amount <= 0) {
-   return message.reply("Please provide a valid positive number for points.");
-  }
-
   if (action !== "add" && action !== "subtract") {
    return message.reply(
     'Please specify either "add" or "subtract" for the action.'
    );
   }
 
-  const username = mentionedUser.username;
+  let targetUser, amount;
+
+  if (args.length === 2) {
+   // User is modifying their own points
+   targetUser = message.author;
+   amount = parseInt(args[1]);
+  } else {
+   // Admin is modifying someone else's points
+   targetUser = message.mentions.users.first();
+   amount = parseInt(args[args.length - 1]);
+  }
+
+  if (!targetUser) {
+   return message.reply(
+    "Please mention a valid user or use the command without mentioning anyone to modify your own points."
+   );
+  }
+
+  if (isNaN(amount) || amount <= 0) {
+   return message.reply("Please provide a valid positive number for points.");
+  }
+
+  const username = targetUser.username;
 
   try {
    const auth = await getAuthClient();
